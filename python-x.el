@@ -220,7 +220,9 @@ the python shell:
 			;; Subtract 2 because of the coding cookie.
 			(- (line-number-at-pos start) 2) ?\n)))))
       (with-temp-buffer
-	(python-mode)
+	(if (fboundp 'python-ts-mode)
+            (python-ts-mode)
+          (python-mode))
 	(when fillstr
 	  (insert fillstr))
 	(insert substring)
@@ -616,7 +618,7 @@ to us (in descending order of recency)."
     (cl-remove-if-not
      (lambda (buffer)
        (with-current-buffer buffer
-	 (when (eq major-mode 'python-mode)
+	 (when (or (eq major-mode 'python-ts-mode) (eq major-mode 'python-mode))
 	   (when (bufferp python-shell--inferior-buffer)
 	     (eq inferior-buffer python-shell--inferior-buffer)))))
      (buffer-list))))
@@ -879,22 +881,25 @@ the send the symbol at point. Print and display the result on the output buffer.
 ;;;###autoload
 (defun python-x-setup ()
   "Setup an ESS-like keyboard map in python-mode"
-  (define-key python-mode-map (kbd "C-c C-j") 'python-shell-send-line)
-  (define-key python-mode-map (kbd "C-c C-n") 'python-shell-send-line-and-step)
-  (define-key python-mode-map (kbd "C-c C-f") 'python-shell-send-defun)
-  (define-key python-mode-map (kbd "C-c C-b") 'python-x-shell-send-buffer)
-  (define-key python-mode-map (kbd "C-c C-c") 'python-shell-send-dwim)
-  (define-key python-mode-map (kbd "C-c C-z") 'python-shell-switch-to-shell-or-buffer)
-  (define-key python-mode-map (kbd "C-c C-S-z") 'python-shell-display-shell)
-  (define-key python-mode-map (kbd "M-<up>") 'python-backward-fold-or-section)
-  (define-key python-mode-map (kbd "M-<down>") 'python-forward-fold-or-section)
-  (define-key python-mode-map (kbd "M-<return>") 'python-shell-send-fold-or-section-and-step)
-  (define-key python-mode-map (kbd "C-c C-h") 'python-eldoc-for-region-or-symbol)
-  (define-key python-mode-map (kbd "C-c p p") 'python-shell-print-region-or-symbol)
-  (define-key python-mode-map (kbd "C-c p h") 'python-help-for-region-or-symbol)
-  (define-key inferior-python-mode-map (kbd "C-c C-z") 'python-shell-switch-to-shell-or-buffer)
+  (cl-loop for mode-map in (cons python-mode-map (if (fboundp 'python-ts-mode) (list python-ts-mode-map) '())) do
+           (define-key mode-map (kbd "C-c C-j") 'python-shell-send-line)
+           (define-key mode-map (kbd "C-c C-n") 'python-shell-send-line-and-step)
+           (define-key mode-map (kbd "C-c C-f") 'python-shell-send-defun)
+           (define-key mode-map (kbd "C-c C-b") 'python-x-shell-send-buffer)
+           (define-key mode-map (kbd "C-c C-c") 'python-shell-send-dwim)
+           (define-key mode-map (kbd "C-c C-z") 'python-shell-switch-to-shell-or-buffer)
+           (define-key mode-map (kbd "C-c C-S-z") 'python-shell-display-shell)
+           (define-key mode-map (kbd "M-<up>") 'python-backward-fold-or-section)
+           (define-key mode-map (kbd "M-<down>") 'python-forward-fold-or-section)
+           (define-key mode-map (kbd "M-<return>") 'python-shell-send-fold-or-section-and-step)
+           (define-key mode-map (kbd "C-c C-h") 'python-eldoc-for-region-or-symbol)
+           (define-key mode-map (kbd "C-c p p") 'python-shell-print-region-or-symbol)
+           (define-key mode-map (kbd "C-c p h") 'python-help-for-region-or-symbol)
+           (define-key inferior-python-mode-map (kbd "C-c C-z") 'python-shell-switch-to-shell-or-buffer))
   (when (featurep 'expand-region)
-    (er/enable-mode-expansions 'python-mode 'python-x-mode-expansions)))
+    (er/enable-mode-expansions 'python-mode 'python-x-mode-expansions)
+    (if (fboundp 'python-ts-mode)
+     (er/enable-mode-expansions 'python-ts-mode 'python-x-mode-expansions))))
 
 (provide 'python-x)
 
