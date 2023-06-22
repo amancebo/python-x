@@ -898,8 +898,8 @@ the send the symbol at point. Print and display the result on the output buffer.
            (define-key inferior-python-mode-map (kbd "C-c C-z") 'python-shell-switch-to-shell-or-buffer))
   (when (featurep 'expand-region)
     (er/enable-mode-expansions 'python-mode 'python-x-mode-expansions)
-    (if (fboundp 'python-ts-mode)
-     (er/enable-mode-expansions 'python-ts-mode 'python-x-mode-expansions))))
+    (when (fboundp 'python-ts-mode)
+      (er/enable-mode-expansions 'python-ts-mode 'python-x-mode-expansions))))
 
 (provide 'python-x)
 
